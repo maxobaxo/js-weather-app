@@ -50,7 +50,7 @@ gulp.task('jsBower', function() {
 gulp.task('cssBower', function() {
   return gulp.src(lib.ext('css').files)
     .pipe(concat('vendor.css'))
-    .pipe(gulp.dest('./build/js'));
+    .pipe(gulp.dest('./build/css'));
 });
 
 gulp.task('bower', ['jsBower', 'cssBower']);
@@ -66,6 +66,7 @@ gulp.task('build', ['clean'], function() {
     gulp.start('jsBrowserify');
   }
   gulp.start('bower');
+  gulp.start('cssBuild');
 });
 
 gulp.task('serve', ['build'], function() {
@@ -78,14 +79,25 @@ gulp.task('serve', ['build'], function() {
   gulp.watch(['js/*.js'], ['jsBuild']);
   gulp.watch(['bower.json'], ['bowerBuild']);
   gulp.watch(['*.html'], ['htmlBuild']);
+  gulp.watch(['css/*.css'], ['cssBuild']);
 });
 
 gulp.task('jsBuild', ['jsBrowserify', 'jshint'], function() {
   browserSync.reload();
 });
 
+gulp.task('bowerBuild', ['bower'], function() {
+  browserSync.reload();
+});
+
 gulp.task('htmlBuild', function() {
   browserSync.reload();
+});
+
+gulp.task('cssBuild', function() {
+  return gulp.src('css/*.css')
+    .pipe(gulp.dest('./build/css'))
+    .pipe(browserSync.stream());
 });
 
 gulp.task('jshint', function() {
