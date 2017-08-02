@@ -1,4 +1,5 @@
 var apiKey = "778757951402b5ff34120149a5dc168a";
+var Temperature = require('./../js/weather.js').tempModule;
 
 $(document).ready(function() {
   $("#location-entry").submit(function(event) {
@@ -8,8 +9,8 @@ $(document).ready(function() {
     var tempFahrenheit;
     $.get("http://api.openweathermap.org/data/2.5/weather?q=" + city + "&appid=" + apiKey)
     .then(function(response) {
-      tempKelvin = response.main.temp;
-      tempFahrenheit = parseInt(1.8 * (tempKelvin - 273) + 32);
+      tempKelvin = new Temperature(response.main.temp);
+      tempFahrenheit = tempKelvin.getFahrenheit();
       $('.showWeather').html("The humidity in " + city + " is " + response.main.humidity + "%. <br> The temperature in your beloved city of " + city + " is " + tempFahrenheit + " degrees.");
     })
       .fail(function(error) {
