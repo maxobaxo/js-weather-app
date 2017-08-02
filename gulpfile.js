@@ -7,6 +7,19 @@ var utilities = require('gulp-util');
 var del = require('del');
 var jshint = require('gulp-jshint');
 var buildProduction = utilities.env.production;
+var lib = require('bower-files')({
+  "overrides": {
+    "bootstrap": {
+      "main": [
+        "less/bootstrap.less",
+        "dist/css/bootstrap.css",
+        "dist/js/bootstrap.js"
+      ]
+    }
+  }
+});
+var browserSync = require('browser-sync').create();
+var sourcemaps = require('gulp-sourcemaps');
 
 gulp.task('jsBrowserify', ['concatInterface'], function() {
   return browserify({ entries: ['./tmp/allConcat.js'] })
@@ -27,11 +40,20 @@ gulp.task('minifyScripts', ['jsBrowserify'], function() {
     .pipe(gulp.dest('./build/js'));
 });
 
-gulp.task('jshint', function() {
-  return gulp.src(['js/*.js'])
-  .pipe(jshint())
-  .pipe(jshint.reporter('default'));
+gulp.task('jsBower', function() {
+  return gulp.src(lib.ext('js').files)
+    .pipe(concat('vendor.min.js'))
+    .pipe(uglify())
+    .pipe(gulp.dest('./build/js'));
 });
+
+gulp.task('cssBower', function() {
+  return gulp.src(lib.ext('css').files)
+    .pipe(concat('vendor.css'))
+    .pipe(gulp.dest('./build/js'));
+});
+
+gulp.task('bower', ['jsBower', 'cssBower']);
 
 gulp.task('clean', function() {
   return del(['build', 'tmp']);
@@ -43,6 +65,7 @@ gulp.task('build', ['clean'], function() {
   } else {
     gulp.start('jsBrowserify');
   }
+  gulp.start('bower');
 });
 
 gulp.task('serve', ['build'], function() {
@@ -53,6 +76,7 @@ gulp.task('serve', ['build'], function() {
     }
   });
   gulp.watch(['js/*.js'], ['jsBuild']);
+  gulp.watch(['bower.json'], ['bowerBuild']);
   gulp.watch(['*.html'], ['htmlBuild']);
 });
 
@@ -62,4 +86,10 @@ gulp.task('jsBuild', ['jsBrowserify', 'jshint'], function() {
 
 gulp.task('htmlBuild', function() {
   browserSync.reload();
+});
+
+gulp.task('jshint', function() {
+  return gulp.src(['js/*.js'])
+  .pipe(jshint())
+  .pipe(jshint.reporter('default'));
 });
